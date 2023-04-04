@@ -27,3 +27,26 @@ class Tetrimino(pygame.sprite.Group):
         super().__init__(*self.blocks)
         for block, pos in zip(self.blocks, SHAPES[shape]):
             block.place(pos)
+    
+    def update(self, fallen):
+        collide = False
+        for block in self.blocks:
+            block.update()
+            if not collide:
+                if pygame.sprite.spritecollideany(block, fallen) or block.rect.bottom > MATRIX_CORNER_POS[1]+BLOCK_SIZE*MATRIX_SIZE[1]:
+                    collide = True
+        if collide:
+            for block in self.blocks:
+                block.rect.move_ip(0, -BLOCK_SIZE)
+        return collide
+    
+    def move(self, dir, fallen):
+        collide = False
+        for block in self.blocks:
+            block.rect.move_ip(dir*BLOCK_SIZE, 0)
+            if not collide:
+                if pygame.sprite.spritecollideany(block, fallen) or block.rect.left < MATRIX_CORNER_POS[0] or block.rect.right > MATRIX_CORNER_POS[0]+BLOCK_SIZE*MATRIX_SIZE[0]:
+                    collide = True
+        if collide:
+            for block in self.blocks:
+                block.rect.move_ip(-dir*BLOCK_SIZE, 0)
