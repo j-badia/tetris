@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from settings import *
-from block import Block
+from block import Block, Tetrimino
 
 def main():
     pygame.init()
@@ -12,15 +12,14 @@ def main():
     background = background.convert()
 
     queue = pygame.sprite.Group()
-    tetrimino = pygame.sprite.Group()
+    #tetrimino = pygame.sprite.Group()
     fallen = pygame.sprite.Group()
-    groups = [queue, tetrimino, fallen]
-    groups_draw = [tetrimino, fallen]
 
-    test_blocks = [Block(color, tetrimino) for color in [(255, 100, 100), (100, 255, 100), (100, 100, 255)]]
-    for i, block in enumerate(test_blocks):
-        block.place((i, 2))
+    #test_blocks = [Block(color, tetrimino) for color in [(255, 100, 100), (100, 255, 100), (100, 100, 255)]]
+    #for i, block in enumerate(test_blocks):
+    #    block.place((i, 2))
     #screen.blit(test_block.image, test_block.rect)
+    tetr = Tetrimino(SH_J)
 
     screen_update = pygame.event.custom_type()
     block_fall = pygame.event.custom_type()
@@ -33,11 +32,11 @@ def main():
             if event.type == QUIT:
                 return
             if event.type == screen_update:
-                for group in groups_draw:
-                    group.draw(screen)
+                fallen.draw(screen)
+                tetr.draw(screen)
                 pygame.display.flip()
             if event.type == block_fall:
-                tetrimino.update()   
+                tetr.update()
 
 if __name__ == "__main__":
     main()

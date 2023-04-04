@@ -9,12 +9,21 @@ def screen_from_matrix(pos):
 class Block(pygame.sprite.Sprite):
     def __init__(self, color, *groups):
         super().__init__(*groups)
-        self.image = pygame.image.load("block.png")
-        self.image = self.image.convert()
-        self.image.fill(color, (2, 2, BLOCK_SIZE-2, BLOCK_SIZE-2))
+        self.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
+        self.image.fill(color)
+        if not hasattr(type(self), "pattern"):
+            Block.pattern = pygame.image.load("block.png").convert()
+        self.image.blit(Block.pattern, (0, 0))
     
     def place(self, mat_pos):
         self.rect = pygame.Rect(screen_from_matrix(mat_pos), (BLOCK_SIZE, BLOCK_SIZE))
     
     def update(self):
         self.rect.move_ip(0, BLOCK_SIZE)
+
+class Tetrimino(pygame.sprite.Group):
+    def __init__(self, shape):
+        self.blocks = [Block(COLORS[shape]) for i in range(4)]
+        super().__init__(*self.blocks)
+        for block, pos in zip(self.blocks, SHAPES[shape]):
+            block.place(pos)
