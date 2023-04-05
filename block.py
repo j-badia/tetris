@@ -23,9 +23,12 @@ class Block(pygame.sprite.Sprite):
 
 class Tetrimino(pygame.sprite.Group):
     def __init__(self, shape):
+        self.shape = shape
         self.blocks = [Block(COLORS[shape]) for i in range(4)]
         super().__init__(*self.blocks)
-        for block, pos in zip(self.blocks, SHAPES[shape]):
+    
+    def place(self):
+        for block, pos in zip(self.blocks, SHAPES[self.shape]):
             block.place(pos)
     
     def update(self, fallen):
