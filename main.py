@@ -4,6 +4,14 @@ from pygame.locals import *
 from settings import *
 from block import Block, Tetrimino
 
+### TODO:
+###
+### Hard Drop
+### Lock Down
+### Rotation
+### Line clear
+### Losing
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -18,6 +26,7 @@ def main():
     screen_update = pygame.event.custom_type()
     block_fall_start = pygame.event.custom_type()
     block_fall = pygame.event.custom_type()
+    falling_fast = False
     pygame.time.set_timer(screen_update, int(1000/60))
     #pygame.time.set_timer(block_fall, 500)
 
@@ -53,7 +62,8 @@ def main():
                 tetrimino.draw(screen)
                 pygame.display.flip()
             if event.type == block_fall_start:
-                pygame.time.set_timer(block_fall, BLOCK_FALL_TIME)
+                time = BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME
+                pygame.time.set_timer(block_fall, time)
             if event.type == block_fall:
                 collided = tetrimino.update(fallen)
                 if collided:
@@ -67,9 +77,10 @@ def main():
                     pygame.time.set_timer(auto_repeat_left, AUTO_REPEAT_DELAY, loops=1)
                     tetrimino.move(-1, fallen)
                 elif event.key == K_DOWN:
+                    falling_fast = True
                     pygame.time.set_timer(block_fall, BLOCK_FALL_FAST_TIME)
-                elif event.key == K_UP:
-                    pygame.time.set_timer(block_fall, BLOCK_FALL_TIME)
+                elif event.key == K_ESCAPE:
+                    return
             if event.type == KEYUP:
                 if event.key == K_RIGHT:
                     pygame.time.set_timer(auto_repeat_right, 0)
@@ -77,6 +88,9 @@ def main():
                 elif event.key == K_LEFT:
                     pygame.time.set_timer(auto_repeat_left, 0)
                     pygame.time.set_timer(move_left, 0)
+                elif event.key == K_DOWN:
+                    falling_fast = False
+                    pygame.time.set_timer(block_fall, BLOCK_FALL_TIME)
             if event.type == auto_repeat_right:
                 pygame.time.set_timer(move_right, AUTO_REPEAT_TIME)
             if event.type == auto_repeat_left:

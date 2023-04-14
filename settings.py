@@ -1,4 +1,5 @@
 import pygame
+from pygame.locals import *
 
 BLOCK_SIZE = 30
 MATRIX_SIZE = (10, 20)
@@ -21,8 +22,11 @@ SHAPES = [[(4, -2), (5, -2), (4, -1), (5, -1)],
           [(4, -2), (5, -2), (3, -1), (4, -1)],
           [(3, -2), (4, -2), (4, -1), (5, -1)]]
 
-BLOCK_FALL_DELAY = 500
+BLOCK_FALL_DELAY = 1 #500
 BLOCK_FALL_TIME = 500
 BLOCK_FALL_FAST_TIME = int(BLOCK_FALL_TIME/20)
 AUTO_REPEAT_DELAY = 300
 AUTO_REPEAT_TIME = int(500/MATRIX_SIZE[0])
+
+CW_KEY = K_x
+CCW_KEY = K_z
