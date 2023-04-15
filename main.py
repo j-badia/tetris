@@ -11,6 +11,7 @@ from block import Block, Tetrimino
 ### Rotation
 ### Line clear
 ### Losing
+### Bug: Random closing
 
 def main():
     pygame.init()
