@@ -3,6 +3,7 @@ import pygame
 from pygame.locals import *
 from settings import *
 from block import Block, Tetrimino
+from debug import Debug
 
 ### TODO:
 ###
@@ -18,6 +19,8 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption("Tetris")
+
+    debug = Debug(screen, (50, 50))
 
     background = pygame.image.load("background.png")
     background = background.convert()
@@ -56,6 +59,7 @@ def main():
             new_queue()
 
         screen.blit(background, (0, 0))
+        debug.blit()
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
@@ -67,6 +71,7 @@ def main():
                 time = BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME
                 pygame.time.set_timer(block_fall, time)
             if event.type == block_fall:
+                debug.print(f"{pygame.time.get_ticks()} block_fall")
                 collided = tetrimino.move((0,1), fallen)
                 if collided:
                     fallen.add(tetrimino.sprites())
