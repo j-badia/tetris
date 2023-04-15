@@ -70,8 +70,9 @@ class Tetrimino(pygame.sprite.Group):
     
     def move(self, dir, fallen):
         for block in self.blocks:
-            block.rect.move_ip(dir*BLOCK_SIZE, 0)
+            block.rect.move_ip(dir[0]*BLOCK_SIZE, dir[1]*BLOCK_SIZE)
         collided = self.test_collision(fallen)
         if collided:
             for block in self.blocks:
-                block.rect.move_ip(-dir*BLOCK_SIZE, 0)
+                block.rect.move_ip(-dir[0]*BLOCK_SIZE, -dir[1]*BLOCK_SIZE)
+        return collided
