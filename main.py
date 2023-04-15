@@ -1,4 +1,4 @@
-import random
+import random, sys
 import pygame
 from pygame.locals import *
 from settings import *
@@ -11,9 +11,10 @@ from block import Block, Tetrimino
 ### Rotation
 ### Line clear
 ### Losing
-### Bug: Random closing
 
 def main():
+    long_time = 24*3600*1000 #Bug in set_timer(ev, 0)
+
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption("Tetris")
@@ -40,7 +41,7 @@ def main():
         tetrimino = queue.pop()
         tetrimino.place()
         pygame.time.set_timer(block_fall_start, BLOCK_FALL_DELAY, loops=1)
-        pygame.time.set_timer(block_fall, 0)
+        pygame.time.set_timer(block_fall, long_time)
         return tetrimino
     
     def new_queue():
@@ -66,17 +67,17 @@ def main():
                 time = BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME
                 pygame.time.set_timer(block_fall, time)
             if event.type == block_fall:
-                collided = tetrimino.update(fallen)
+                collided = tetrimino.move((0,1), fallen)
                 if collided:
                     fallen.add(tetrimino.sprites())
                     tetrimino = place_tetrimino()
             if event.type == KEYDOWN:
                 if event.key == K_RIGHT:
                     pygame.time.set_timer(auto_repeat_right, AUTO_REPEAT_DELAY, loops=1)
-                    tetrimino.move(1, fallen)
+                    tetrimino.move((1,0), fallen)
                 elif event.key == K_LEFT:
                     pygame.time.set_timer(auto_repeat_left, AUTO_REPEAT_DELAY, loops=1)
-                    tetrimino.move(-1, fallen)
+                    tetrimino.move((-1,0), fallen)
                 elif event.key == K_DOWN:
                     falling_fast = True
                     pygame.time.set_timer(block_fall, BLOCK_FALL_FAST_TIME)
@@ -84,11 +85,11 @@ def main():
                     return
             if event.type == KEYUP:
                 if event.key == K_RIGHT:
-                    pygame.time.set_timer(auto_repeat_right, 0)
-                    pygame.time.set_timer(move_right, 0)
+                    pygame.time.set_timer(auto_repeat_right, long_time)
+                    pygame.time.set_timer(move_right, long_time)
                 elif event.key == K_LEFT:
-                    pygame.time.set_timer(auto_repeat_left, 0)
-                    pygame.time.set_timer(move_left, 0)
+                    pygame.time.set_timer(auto_repeat_left, long_time)
+                    pygame.time.set_timer(move_left, long_time)
                 elif event.key == K_DOWN:
                     falling_fast = False
                     pygame.time.set_timer(block_fall, BLOCK_FALL_TIME)
@@ -97,9 +98,10 @@ def main():
             if event.type == auto_repeat_left:
                 pygame.time.set_timer(move_left, AUTO_REPEAT_TIME)
             if event.type == move_right:
-                tetrimino.move(1, fallen)
+                tetrimino.move((1,0), fallen)
             if event.type == move_left:
-                tetrimino.move(-1, fallen)
+                tetrimino.move((-1,0), fallen)
         
 if __name__ == "__main__":
+    print(f"Dev mode: {sys.flags.dev_mode}")
     main()
