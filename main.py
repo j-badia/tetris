@@ -82,7 +82,7 @@ def main():
                     falling_fast = True
                     pygame.time.set_timer(block_fall, BLOCK_FALL_FAST_TIME)
                 elif event.key == CW_KEY or event.key == CCW_KEY:
-                    tetrimino.rotate(event.key)
+                    tetrimino.rotate(event.key, fallen)
                 elif event.key == K_ESCAPE:
                     return
             if event.type == KEYUP:
