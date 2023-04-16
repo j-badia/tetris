@@ -16,4 +16,4 @@ class Debug:
         self.img = None
 
     def print(self, text):
-        self.img = self.font.render(text, True, (200, 200, 200), (0, 0, 0))
+        self.img = self.font.render(str(text), True, (200, 200, 200), (0, 0, 0))
