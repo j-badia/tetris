@@ -2,7 +2,7 @@ import random, sys
 import pygame
 from pygame.locals import *
 from settings import *
-from block import Block, Tetrimino
+from block import Block, Tetrimino, Fallen
 from timer import Timer
 from debug import Debug
 
@@ -27,7 +27,8 @@ def main():
     background = background.convert()
 
     queue = []
-    fallen = pygame.sprite.Group()
+    fallen = Fallen()
+    matrix = [MATRIX_SIZE[0]*[0] for i in range(MATRIX_SIZE[1])]
 
     screen_update = pygame.event.custom_type()
     block_fall_start = pygame.event.custom_type()
@@ -74,10 +75,16 @@ def main():
                 time = BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME
                 timer.set_timer(block_fall, time)
             if event.type == block_fall:
-                #debug.print(f"{pygame.time.get_ticks()} block_fall")
-                collided = tetrimino.move((0,1), fallen)
+                collided = tetrimino.move((0,1), fallen.sprites())
                 if collided:
-                    fallen.add(tetrimino.sprites())
+                    for block in tetrimino.sprites():
+                        fallen.add_block(block)
+                    # for block in tetrimino.sprites():
+                    #     x, y = matrix_from_screen(block.rect.center)
+                    #     matrix[y][x] = 1
+                    # for j in range(MATRIX_SIZE[1]-1, -1, -1):
+                    #     if matrix[j] == MATRIX_SIZE[0] * [1]:
+
                     tetrimino = place_tetrimino()
             if event.type == KEYDOWN:
                 if event.key == K_RIGHT:

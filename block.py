@@ -27,6 +27,13 @@ def screen_from_matrix(pos):
     xc, yc = MATRIX_CORNER_POS
     return (xc + BLOCK_SIZE*x, yc + BLOCK_SIZE*y)
 
+def matrix_from_screen(pos):
+    x, y = pos
+    xc, yc = MATRIX_CORNER_POS
+    xm = (x - xc)/BLOCK_SIZE
+    ym = (y - yc)/BLOCK_SIZE
+    return (int(xm), int(ym))
+
 class Block(pygame.sprite.Sprite):
     def __init__(self, color, *groups):
         super().__init__(*groups)
@@ -38,7 +45,15 @@ class Block(pygame.sprite.Sprite):
     
     def place(self, mat_pos):
         self.rect = pygame.Rect(screen_from_matrix(mat_pos), (BLOCK_SIZE, BLOCK_SIZE))
+        self.mat_pos = Vector2(mat_pos)
 
+    def move(self, dir):
+        self.rect.move_ip((BLOCK_SIZE*dir)[:])
+        self.mat_pos += dir
+    
+    def move_to(self, mat_pos):
+        self.mat_pos = mat_pos
+        self.rect.topleft = screen_from_matrix(mat_pos)
 
 class Tetrimino(pygame.sprite.Group):
     def __init__(self, shape):
@@ -50,7 +65,8 @@ class Tetrimino(pygame.sprite.Group):
         for block, pos in zip(self.blocks, SHAPES[self.shape]):
             block.place(pos)
         cent_rel = CENTERS[self.shape]
-        self.rotation_center = Vector2(self.blocks[0].rect.topleft) + BLOCK_SIZE*cent_rel
+        #self.rotation_center = Vector2(self.blocks[0].rect.topleft) + BLOCK_SIZE*cent_rel
+        self.rotation_center = self.blocks[0].mat_pos + cent_rel
     
     def test_collision(self, others):
         for block in self.blocks:
@@ -66,7 +82,7 @@ class Tetrimino(pygame.sprite.Group):
     
     def move_no_collision(self, dir):
         for block in self.blocks:
-            block.rect.move_ip((BLOCK_SIZE*dir)[:])
+            block.move(dir)
 
     def move(self, dir, fallen):
         dir_v = Vector2(dir)
@@ -75,26 +91,27 @@ class Tetrimino(pygame.sprite.Group):
         if collided:
             self.move_no_collision(-dir_v)
         else:
-            self.rotation_center += BLOCK_SIZE*dir_v
+            self.rotation_center += dir_v
         return collided
     
     def rotated_no_collision(self, key):
         positions = []
         for block in self.blocks:
-            block_cent = Vector2(block.rect.center)
+            #block_cent = Vector2(block.rect.center)
+            block_cent = block.mat_pos + Vector2(0.5, 0.5)
             pos_rel = block_cent - self.rotation_center
             if key == CW_KEY:
                 pos_rel.rotate_ip(90)
             elif key == CCW_KEY:
                 pos_rel.rotate_ip(-90)
-            positions.append((self.rotation_center + pos_rel)[:])
+            positions.append((self.rotation_center + pos_rel - Vector2(0.5, 0.5))[:])
         return positions
     
     def rotate(self, key, fallen):
-        old_positions = [block.rect.center for block in self.blocks]
+        old_positions = [block.mat_pos for block in self.blocks]
         positions = self.rotated_no_collision(key)
         for block, pos in zip(self.blocks, positions):
-            block.rect.center = pos
+            block.move_to(pos)
         if self.test_collision(fallen):
             deltas = ROT_MOVEMENTS_I if self.shape==SH_I else ROT_MOVEMENTS
             for delta in deltas:
@@ -102,4 +119,23 @@ class Tetrimino(pygame.sprite.Group):
                 if not collided:
                     return
             for block, pos in zip(self.blocks, old_positions):
-                block.rect.center = pos
+                block.move_to(pos)
+
+class Fallen(pygame.sprite.Group):
+    def __init__(self):
+        super().__init__()
+        self.matrix = {}
+        for i in range(MATRIX_SIZE[0]):
+            for j in range(MATRIX_SIZE[1]):
+                self.matrix[(i, j)] = None
+    
+    def add_block(self, block, pos=None):
+        if pos is None:
+            pos = block.mat_pos
+        self.matrix[tuple(pos[:])] = block
+        super().add(block)
+    
+    def get(self, i, j=None):
+        if j is None:
+            i, j = i
+        return self.matrix[(i, j)]
