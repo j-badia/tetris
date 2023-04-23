@@ -45,8 +45,7 @@ def main():
     def place_tetrimino():
         tetrimino = queue.pop()
         tetrimino.place()
-        timer.set_timer(block_fall_start, BLOCK_FALL_DELAY, loops=1)
-        timer.set_timer(block_fall, long_time)
+        timer.set_timer(block_fall, BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME, delay=BLOCK_FALL_DELAY)
         return tetrimino
     
     def new_queue():
@@ -71,9 +70,6 @@ def main():
                 fallen.draw(screen)
                 tetrimino.draw(screen)
                 pygame.display.flip()
-            if event.type == block_fall_start:
-                time = BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME
-                timer.set_timer(block_fall, time)
             if event.type == block_fall:
                 collided = tetrimino.move((0,1), fallen.sprites())
                 if collided:
@@ -95,10 +91,10 @@ def main():
                     tetrimino = place_tetrimino()
             if event.type == KEYDOWN:
                 if event.key == K_RIGHT:
-                    timer.set_timer(auto_repeat_right, AUTO_REPEAT_DELAY, loops=1)
+                    timer.set_timer(move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
                     tetrimino.move((1,0), fallen)
                 elif event.key == K_LEFT:
-                    timer.set_timer(auto_repeat_left, AUTO_REPEAT_DELAY, loops=1)
+                    timer.set_timer(move_left, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
                     tetrimino.move((-1,0), fallen)
                 elif event.key == K_DOWN:
                     falling_fast = True
@@ -109,18 +105,12 @@ def main():
                     return
             if event.type == KEYUP:
                 if event.key == K_RIGHT:
-                    timer.set_timer(auto_repeat_right, long_time)
                     timer.set_timer(move_right, long_time)
                 elif event.key == K_LEFT:
-                    timer.set_timer(auto_repeat_left, long_time)
                     timer.set_timer(move_left, long_time)
                 elif event.key == K_DOWN:
                     falling_fast = False
                     timer.set_timer(block_fall, BLOCK_FALL_TIME)
-            if event.type == auto_repeat_right:
-                timer.set_timer(move_right, AUTO_REPEAT_TIME)
-            if event.type == auto_repeat_left:
-                timer.set_timer(move_left, AUTO_REPEAT_TIME)
             if event.type == move_right:
                 tetrimino.move((1,0), fallen)
             if event.type == move_left:
