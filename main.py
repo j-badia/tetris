@@ -79,12 +79,19 @@ def main():
                 if collided:
                     for block in tetrimino.sprites():
                         fallen.add_block(block)
-                    # for block in tetrimino.sprites():
-                    #     x, y = matrix_from_screen(block.rect.center)
-                    #     matrix[y][x] = 1
-                    # for j in range(MATRIX_SIZE[1]-1, -1, -1):
-                    #     if matrix[j] == MATRIX_SIZE[0] * [1]:
-
+                    completed_lines = []
+                    for j in reversed(range(MATRIX_SIZE[1])):
+                        complete_line = True
+                        for elem in fallen.get_row(j):
+                            if elem is None:
+                                complete_line = False
+                        if complete_line:
+                            completed_lines.append(j)
+                            for i in range(MATRIX_SIZE[0]):
+                                fallen.get(i, j).image.fill((230, 230, 230))
+                    if len(completed_lines) > 0:
+                        pygame.time.delay(500)
+                        fallen.clear(completed_lines)
                     tetrimino = place_tetrimino()
             if event.type == KEYDOWN:
                 if event.key == K_RIGHT:

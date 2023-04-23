@@ -139,3 +139,21 @@ class Fallen(pygame.sprite.Group):
         if j is None:
             i, j = i
         return self.matrix[(i, j)]
+    
+    def get_row(self, j):
+        return [self.matrix[(i, j)] for i in range(MATRIX_SIZE[0])]
+    
+    def set_row(self, j, blocks):
+        for i, block in enumerate(blocks):
+            if block is not None:
+                block.move_to(Vector2(i, j))
+            self.matrix[(i, j)] = block
+    
+    def clear(self, lines):
+        for j in lines:
+            self.remove(self.get_row(j))
+            self.set_row(j, MATRIX_SIZE[0]*[None])
+        for j in sorted(lines):
+            for jp in reversed(range(j)):
+                self.set_row(jp+1, self.get_row(jp))
+            self.set_row(0, MATRIX_SIZE[0]*[None])
