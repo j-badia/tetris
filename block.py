@@ -7,7 +7,7 @@ COLORS = [pygame.Color("yellow2"),
           pygame.Color("cyan2"),
           pygame.Color("purple3"),
           pygame.Color("orange2"),
-          pygame.Color("darkblue"),
+          pygame.Color("blue"),
           pygame.Color("green3"),
           pygame.Color("red2")]
 SHAPES = [[(4, -2), (5, -2), (4, -1), (5, -1)],
@@ -38,10 +38,7 @@ class Block(pygame.sprite.Sprite):
     def __init__(self, color, *groups):
         super().__init__(*groups)
         self.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
-        self.image.fill(color)
-        if not hasattr(type(self), "pattern"):
-            Block.pattern = pygame.image.load("block.png").convert()
-        self.image.blit(Block.pattern, (0, 0))
+        self.image.fill(color, (1, 1, BLOCK_SIZE-2, BLOCK_SIZE-2))
     
     def place(self, mat_pos):
         self.rect = pygame.Rect(screen_from_matrix(mat_pos), (BLOCK_SIZE, BLOCK_SIZE))

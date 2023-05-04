@@ -11,6 +11,7 @@ from debug import Debug
 ### Hard Drop
 ### Lock Down
 ### Line clear
+### Show queue
 ### Losing
 
 def main():
@@ -28,24 +29,20 @@ def main():
 
     queue = []
     fallen = Fallen()
-    matrix = [MATRIX_SIZE[0]*[0] for i in range(MATRIX_SIZE[1])]
 
     screen_update = pygame.event.custom_type()
-    block_fall_start = pygame.event.custom_type()
     block_fall = pygame.event.custom_type()
+    clear_lines = pygame.event.custom_type()
     falling_fast = False
     timer.set_timer(screen_update, int(1000/60))
-    #timer.set_timer(block_fall, 500)
 
-    auto_repeat_left = pygame.event.custom_type()
-    auto_repeat_right = pygame.event.custom_type()
     move_left = pygame.event.custom_type()
     move_right = pygame.event.custom_type()
 
     def place_tetrimino():
         tetrimino = queue.pop()
         tetrimino.place()
-        timer.set_timer(block_fall, BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME, delay=BLOCK_FALL_DELAY)
+        timer.set_timer(block_fall, BLOCK_FALL_FAST_TIME if falling_fast else BLOCK_FALL_TIME, delay=BLOCK_FALL_DELAY, pause=True)
         return tetrimino
     
     def new_queue():
@@ -71,7 +68,7 @@ def main():
                 tetrimino.draw(screen)
                 pygame.display.flip()
             if event.type == block_fall:
-                collided = tetrimino.move((0,1), fallen.sprites())
+                collided = tetrimino.move((0,1), fallen)
                 if collided:
                     for block in tetrimino.sprites():
                         fallen.add_block(block)
@@ -86,23 +83,31 @@ def main():
                             for i in range(MATRIX_SIZE[0]):
                                 fallen.get(i, j).image.fill((230, 230, 230))
                     if len(completed_lines) > 0:
-                        pygame.time.delay(500)
-                        fallen.clear(completed_lines)
-                    tetrimino = place_tetrimino()
+                        timer.pause()
+                        timer.set_timer(clear_lines, 500, loops=1)
+                    else:
+                        tetrimino = place_tetrimino()
+            if event.type == clear_lines:
+                fallen.clear(completed_lines)
+                tetrimino = place_tetrimino()
+                timer.unpause()
             if event.type == KEYDOWN:
-                if event.key == K_RIGHT:
-                    timer.set_timer(move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
-                    tetrimino.move((1,0), fallen)
-                elif event.key == K_LEFT:
-                    timer.set_timer(move_left, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
-                    tetrimino.move((-1,0), fallen)
-                elif event.key == K_DOWN:
-                    falling_fast = True
-                    timer.set_timer(block_fall, BLOCK_FALL_FAST_TIME)
-                elif event.key == CW_KEY or event.key == CCW_KEY:
-                    tetrimino.rotate(event.key, fallen)
-                elif event.key == K_ESCAPE:
+                if event.key == K_ESCAPE:
                     return
+                if event.key == K_p:
+                    timer.paused = not timer.paused
+                if not timer.paused:
+                    if event.key == K_RIGHT:
+                        timer.set_timer(move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY, pause=True)
+                        tetrimino.move((1,0), fallen)
+                    elif event.key == K_LEFT:
+                        timer.set_timer(move_left, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY, pause=True)
+                        tetrimino.move((-1,0), fallen)
+                    elif event.key == K_DOWN:
+                        falling_fast = True
+                        timer.set_timer(block_fall, BLOCK_FALL_FAST_TIME, pause=True)
+                    elif event.key == CW_KEY or event.key == CCW_KEY:
+                        tetrimino.rotate(event.key, fallen)
             if event.type == KEYUP:
                 if event.key == K_RIGHT:
                     timer.set_timer(move_right, long_time)
@@ -110,7 +115,7 @@ def main():
                     timer.set_timer(move_left, long_time)
                 elif event.key == K_DOWN:
                     falling_fast = False
-                    timer.set_timer(block_fall, BLOCK_FALL_TIME)
+                    timer.set_timer(block_fall, BLOCK_FALL_TIME, pause=True)
             if event.type == move_right:
                 tetrimino.move((1,0), fallen)
             if event.type == move_left:
