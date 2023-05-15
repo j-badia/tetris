@@ -3,7 +3,8 @@ from pygame.time import get_ticks
 
 # timers[eventid] : [event, time, last_tick, loops, delay, pause]
 class Timer:
-    def __init__(self):
+    def __init__(self, event_manager):
+        self.event_manager = event_manager
         self.timers = {}
         self.paused = False
     
@@ -26,7 +27,7 @@ class Timer:
                     self.timers[eventid][2] = curr_tick
             else:
                 if curr_tick - last_tick > time:
-                    pygame.event.post(event)
+                    self.event_manager.push(event)
                     self.timers[eventid][2] = curr_tick
                     if loops != 0:
                         if loops == 1:

@@ -62,7 +62,6 @@ class Tetrimino(pygame.sprite.Group):
         for block, pos in zip(self.blocks, SHAPES[self.shape]):
             block.place(pos)
         cent_rel = CENTERS[self.shape]
-        #self.rotation_center = Vector2(self.blocks[0].rect.topleft) + BLOCK_SIZE*cent_rel
         self.rotation_center = self.blocks[0].mat_pos + cent_rel
     
     def test_collision(self, others):
@@ -94,7 +93,6 @@ class Tetrimino(pygame.sprite.Group):
     def rotated_no_collision(self, key):
         positions = []
         for block in self.blocks:
-            #block_cent = Vector2(block.rect.center)
             block_cent = block.mat_pos + Vector2(0.5, 0.5)
             pos_rel = block_cent - self.rotation_center
             if key == CW_KEY:
@@ -125,6 +123,7 @@ class Fallen(pygame.sprite.Group):
         for i in range(MATRIX_SIZE[0]):
             for j in range(MATRIX_SIZE[1]):
                 self.matrix[(i, j)] = None
+        self.completed_lines = []
     
     def add_block(self, block, pos=None):
         if pos is None:
@@ -146,11 +145,30 @@ class Fallen(pygame.sprite.Group):
                 block.move_to(Vector2(i, j))
             self.matrix[(i, j)] = block
     
-    def clear(self, lines):
-        for j in lines:
+    def clear_lines(self):
+        for j in self.completed_lines:
             self.remove(self.get_row(j))
             self.set_row(j, MATRIX_SIZE[0]*[None])
-        for j in sorted(lines):
+        for j in sorted(self.completed_lines):
             for jp in reversed(range(j)):
                 self.set_row(jp+1, self.get_row(jp))
             self.set_row(0, MATRIX_SIZE[0]*[None])
+        self.completed_lines = []
+    
+    def check_lines(self):
+        if len(self.completed_lines) > 0:
+            return self.completed_lines
+        self.completed_lines = []
+        for j in reversed(range(MATRIX_SIZE[1])):
+            complete_line = True
+            for elem in self.get_row(j):
+                if elem is None:
+                    complete_line = False
+            if complete_line:
+                self.completed_lines.append(j)
+        return self.completed_lines
+
+    def paint_lines(self):
+        for j in self.completed_lines:
+            for i in range(MATRIX_SIZE[0]):
+                self.get(i, j).image.fill((230, 230, 230))
