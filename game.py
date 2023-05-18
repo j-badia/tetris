@@ -42,8 +42,12 @@ class Game:
             self.new_queue()
         self.tetrimino.place()
         self.drawer.add(*self.tetrimino.sprites())
-        time = BLOCK_FALL_FAST_TIME if self.falling_fast else BLOCK_FALL_TIME
-        self.timer.set_timer(events.block_fall, time, delay=BLOCK_FALL_DELAY)
+        if self.tetrimino.test_collision(self.fallen):
+            self.timer.set_timer(events.lost, LOSE_DELAY, loops=1)
+            self.timer.set_timer(events.block_fall, 0)
+        else:
+            time = BLOCK_FALL_FAST_TIME if self.falling_fast else BLOCK_FALL_TIME
+            self.timer.set_timer(events.block_fall, time, delay=BLOCK_FALL_DELAY)
 
     def new_queue(self):
         for shape in random.sample(range(7), 7):
@@ -65,25 +69,25 @@ class Game:
             if event.type == events.block_fall:
                 collided = self.tetrimino.move((0,1), self.fallen)
                 if collided:
-                    for block in self.tetrimino.sprites():
-                        self.fallen.add_block(block)
-                    self.fallen.check_lines()
-                    if len(self.fallen.completed_lines) > 0:
-                        self.timer.set_timer(events.block_fall, 0)
-                        self.timer.set_timer(events.clear_lines, LINE_CLEAR_DELAY, loops=1)
-                        self.fallen.paint_lines()
+                    if max(block.mat_pos[1] for block in self.tetrimino.sprites()) < 0:
+                        self.timer.set_timer(events.lost, LOSE_DELAY, loops=1)
                     else:
-                        self.place_tetrimino()
+                        for block in self.tetrimino.sprites():
+                            self.fallen.add_block(block)
+                        self.fallen.check_lines()
+                        if len(self.fallen.completed_lines) > 0:
+                            self.timer.set_timer(events.block_fall, 0)
+                            self.timer.set_timer(events.clear_lines, LINE_CLEAR_DELAY, loops=1)
+                            self.fallen.paint_lines()
+                        else:
+                            self.place_tetrimino()
             elif event.type == events.clear_lines:
                 for j in self.fallen.completed_lines:
                     [self.drawer.remove(block) for block in self.fallen.get_row(j)]
                 self.fallen.clear_lines()
                 self.place_tetrimino()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    #self.event_manager.push(events.pause)
-                    pass
-                elif event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT:
                     self.timer.set_timer(events.move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
                     self.tetrimino.move((1,0), self.fallen)
                 elif event.key == pygame.K_LEFT:

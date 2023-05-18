@@ -15,7 +15,7 @@ class CenteredText(pygame.sprite.Sprite):
         super().__init__()
         self.create_font()
         self.image_normal = self.font.render(text, True, (230, 230, 230))
-        self.image_highlight = self.font.render(text, True, (100, 170, 250))
+        self.image_highlight = self.font.render(text, True, (120, 190, 250))
         self.image = self.image_normal
         self.rect = self.image.get_rect()
         self.rect.move_ip(SCREEN_SIZE[0]/2 - self.rect.width/2, 0)
@@ -105,9 +105,6 @@ class Menu:
                     command = self.options.commands[pos]
                     self.timer.set_timer(events.option_selected, 100, loops=1,
                                          ev_dict={"pos": pos, "command": command})
-            elif event.type == events.option_selected:
-                pos = event.pos
-                self.options.options[pos].reset_highlight()
 
     def close(self):
         self.drawer.remove(self.background)
