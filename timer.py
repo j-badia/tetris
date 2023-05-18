@@ -8,12 +8,12 @@ class Timer:
         self.timers = {}
         self.paused = False
     
-    def set_timer(self, eventid, time, loops=0, delay=0, pause=False):
+    def set_timer(self, eventid, time, loops=0, delay=0, pause=False, ev_dict={}):
         if time == 0:
             if eventid in self.timers:
                 del self.timers[eventid]
         else:
-            self.timers[eventid] = [pygame.event.Event(eventid), time, get_ticks(), loops, delay, pause]
+            self.timers[eventid] = [pygame.event.Event(eventid, ev_dict), time, get_ticks(), loops, delay, pause]
     
     def tick(self):
         curr_tick = get_ticks()

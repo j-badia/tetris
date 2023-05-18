@@ -5,6 +5,13 @@ from block import Tetrimino, Fallen
 from settings import *
 
 class Game:
+    bg_image = None
+
+    @classmethod
+    def load_bg(cls):
+        if cls.bg_image is None:
+            cls.bg_image = pygame.image.load("background.png").convert()
+
     def __init__(self, drawer, timer, event_manager):
         self.drawer = drawer
         self.timer = timer
@@ -15,11 +22,12 @@ class Game:
                                      events.clear_lines,
                                      events.move_left,
                                      events.move_right,
-                                     KEYDOWN,
-                                     KEYUP)
+                                     pygame.KEYDOWN,
+                                     pygame.KEYUP)
 
+        self.load_bg()
         background = pygame.sprite.Sprite()
-        background.image = pygame.image.load("background.png").convert()
+        background.image = self.bg_image
         background.rect = pygame.rect.Rect((0, 0), SCREEN_SIZE)
         self.drawer.add(background, z=-1)
 
@@ -50,6 +58,7 @@ class Game:
             self.drawer.remove(block)
         for block in self.tetrimino.sprites():
             self.drawer.remove(block)
+        self.event_manager.deregister(self.id)
     
     def update(self):
         for event in self.event_manager.get(self.id):
@@ -70,27 +79,27 @@ class Game:
                     [self.drawer.remove(block) for block in self.fallen.get_row(j)]
                 self.fallen.clear_lines()
                 self.place_tetrimino()
-            elif event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     #self.event_manager.push(events.pause)
                     pass
-                elif event.key == K_RIGHT:
+                elif event.key == pygame.K_RIGHT:
                     self.timer.set_timer(events.move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
                     self.tetrimino.move((1,0), self.fallen)
-                elif event.key == K_LEFT:
+                elif event.key == pygame.K_LEFT:
                     self.timer.set_timer(events.move_left, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
                     self.tetrimino.move((-1,0), self.fallen)
-                elif event.key == K_DOWN:
+                elif event.key == pygame.K_DOWN:
                     self.falling_fast = True
                     self.timer.set_timer(events.block_fall, BLOCK_FALL_FAST_TIME)
                 elif event.key == CW_KEY or event.key == CCW_KEY:
                     self.tetrimino.rotate(event.key, self.fallen)
-            elif event.type == KEYUP:
-                if event.key == K_RIGHT:
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
                     self.timer.set_timer(events.move_right, 0)
-                elif event.key == K_LEFT:
+                elif event.key == pygame.K_LEFT:
                     self.timer.set_timer(events.move_left, 0)
-                elif event.key == K_DOWN:
+                elif event.key == pygame.K_DOWN:
                     self.falling_fast = False
                     self.timer.set_timer(events.block_fall, BLOCK_FALL_TIME, pause=True)
             elif event.type == events.move_right:

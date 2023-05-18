@@ -4,6 +4,7 @@ import pygame
 class EventManager:
     def __init__(self):
         self.subscribed = defaultdict(list) # {ev_type: [sub_ids]}
+        self.paused = []
         self.queues = {} # {sub_id: [evs]}
         self.last_id = 0
     
@@ -11,6 +12,19 @@ class EventManager:
         self.last_id += 1
         self.queues[self.last_id] = []
         return self.last_id
+
+    def deregister(self, id):
+        del self.queues[id]
+        to_delete = []
+        for event_type in self.subscribed:
+            sub_ids = self.subscribed[event_type]
+            if id in sub_ids:
+                if len(sub_ids) > 1:
+                    self.subscribed[event_type].remove(id)
+                else:
+                    to_delete.append(event_type)
+        for event_type in to_delete:
+            del self.subscribed[event_type]
     
     def subscribe(self, sub_id, *event_types):
         for event_type in event_types:
@@ -21,11 +35,19 @@ class EventManager:
             if event_type in self.subscribed:
                 del self.subscribed[event_type]
         self.queues[sub_id] = [event for event in self.queues[sub_id] if event.type not in event_types]
+
+    def pause(self, id):
+        self.paused.append(id)
+        self.queues[id] = []
+    
+    def unpause(self, id):
+        self.paused.remove(id)
     
     def push(self, *events):
         for event in events:
             for sub in self.subscribed[event.type]:
-                self.queues[sub].append(event)
+                if sub not in self.paused:
+                    self.queues[sub].append(event)
     
     def get(self, sub_id):
         event = self.get_next(sub_id)
@@ -40,6 +62,8 @@ class EventManager:
 screen_update = pygame.event.custom_type()
 
 pause = pygame.event.custom_type()
+option_selected = pygame.event.custom_type()
+lost = pygame.event.custom_type()
 
 block_fall = pygame.event.custom_type()
 clear_lines = pygame.event.custom_type()
