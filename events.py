@@ -2,7 +2,8 @@ from collections import defaultdict
 import pygame
 
 class EventManager:
-    def __init__(self):
+    def __init__(self, timer):
+        self.timer = timer
         self.subscribed = defaultdict(list) # {ev_type: [sub_ids]}
         self.paused = []
         self.queues = {} # {sub_id: [evs]}
@@ -58,8 +59,13 @@ class EventManager:
         if sub_id in self.queues and len(self.queues[sub_id]) > 0:
             return self.queues[sub_id].pop(0)
         return None
+    
+    def set_timer(self, eventid, time, loops=0, delay=0, ev_dict={}):
+        self.timer.set_timer(eventid, time, loops=loops, delay=delay, ev_dict=ev_dict)
 
 screen_update = pygame.event.custom_type()
+
+play_sound = pygame.event.custom_type()
 
 pause = pygame.event.custom_type()
 option_selected = pygame.event.custom_type()

@@ -70,9 +70,8 @@ class Cursor(pygame.sprite.Sprite):
         self.place((self.pos+1) % self.n)
 
 class Menu:
-    def __init__(self, options, commands, drawer, timer, event_manager):
+    def __init__(self, options, commands, drawer, event_manager):
         self.drawer = drawer
-        self.timer = timer
         self.event_manager = event_manager
         self.id = event_manager.register()
         self.event_manager.subscribe(self.id, pygame.KEYDOWN)
@@ -103,7 +102,7 @@ class Menu:
                     pos = self.cursor.pos
                     self.options.options[pos].highlight()
                     command = self.options.commands[pos]
-                    self.timer.set_timer(events.option_selected, 100, loops=1,
+                    self.event_manager.set_timer(events.option_selected, 100, loops=1,
                                          ev_dict={"pos": pos, "command": command})
 
     def close(self):
