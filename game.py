@@ -6,11 +6,18 @@ from settings import *
 
 class Game:
     bg_image = None
+    next_font = None
 
     @classmethod
     def load_bg(cls):
         if cls.bg_image is None:
             cls.bg_image = pygame.image.load("background.png").convert()
+
+    @classmethod
+    def create_font(cls):
+        if cls.next_font is None:
+            pygame.font.init()
+            cls.next_font = pygame.font.SysFont(NEXT_FONT, NEXT_FONTSIZE, bold=True)
 
     def __init__(self, drawer, event_manager):
         self.drawer = drawer
@@ -30,17 +37,27 @@ class Game:
         background.rect = pygame.rect.Rect((0, 0), SCREEN_SIZE)
         self.drawer.add(background, z=-1)
 
+        self.create_font()
+        next = pygame.sprite.Sprite()
+        next.image = self.next_font.render("NEXT", True, (230, 230, 230))
+        next.rect = next.image.get_rect()
+        next.rect.centerx = MATRIX_CORNER_POS[0] + BLOCK_SIZE*NEXT_POS[0]
+        next.rect.bottom = MATRIX_CORNER_POS[1] + BLOCK_SIZE*(NEXT_POS[1]-2)
+        self.drawer.add(next)
+
         self.queue = []
         self.fallen = Fallen()
         self.drawer.add(*self.fallen.sprites())
         self.falling_fast = False
     
     def place_tetrimino(self):
-        self.tetrimino = self.queue.pop()
-        if len(self.queue) == 0:
+        if len(self.queue) < 2:
             self.new_queue()
+        self.tetrimino = self.next_tetrimino
+        self.next_tetrimino = self.queue.pop()
         self.tetrimino.place()
-        self.drawer.add(*self.tetrimino.sprites())
+        self.next_tetrimino.place(center=NEXT_POS)
+        self.drawer.add(*self.next_tetrimino.sprites())
         if self.tetrimino.test_collision(self.fallen):
             self.event_manager.set_timer(events.lost, LOSE_DELAY, loops=1)
             self.event_manager.set_timer(events.block_fall, 0)
@@ -54,6 +71,8 @@ class Game:
     
     def start(self):
         self.new_queue()
+        self.next_tetrimino = self.queue.pop()
+        self.drawer.add(*self.next_tetrimino.sprites())
         self.place_tetrimino()
     
     def end(self):
@@ -95,7 +114,7 @@ class Game:
                 elif event.key == pygame.K_DOWN:
                     self.falling_fast = True
                     self.event_manager.set_timer(events.block_fall, BLOCK_FALL_FAST_TIME)
-                elif event.key == CW_KEY or event.key == CCW_KEY:
+                elif event.key in CW_KEYS or event.key in CCW_KEYS:
                     self.tetrimino.rotate(event.key, self.fallen)
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:

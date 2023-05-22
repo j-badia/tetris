@@ -13,8 +13,9 @@ from settings import *
 ### Hard Drop
 ### Lock Down
 ### Show queue
-### Losing
 ### Sound
+### Levels / speed change
+### Continuous movement in menu
 
 class Drawer:
     def __init__(self, screen):
@@ -44,6 +45,13 @@ class Audio:
         self.id = self.event_manager.register()
         self.event_manager.subscribe(self.id, events.play_sound)
         self.sounds = {}
+        self.enabled = True
+    
+    def enable(self):
+        self.enabled = True
+    
+    def disable(self):
+        self.enabled = False
     
     def load(self, name, file, volume=1):
         self.sounds[name] = pygame.mixer.Sound(file=file)
@@ -51,6 +59,8 @@ class Audio:
     
     def update(self):
         for event in self.event_manager.get(self.id):
+            if not self.enabled:
+                continue
             if event.type == events.play_sound:
                 name = event.name
                 if hasattr(event, "loops"):
@@ -77,12 +87,11 @@ def main():
 
     drawer = Drawer(screen)
     audio = Audio(event_manager)
-    #audio.load("bg music", "theme-lofi.ogg", 0)
+    audio.load("bg music", "theme-lofi.ogg", 0.4)
+    audio.disable()
 
     game_state = GameState(drawer, event_manager)
 
-    bg_music = pygame.mixer.Sound(file="theme-lofi.mp3")
-    bg_music.play(loops=-1)
     debug = Debug(screen, (50, 50))
     drawer.add(debug, z=10)
 

@@ -29,9 +29,8 @@ class GameState:
         self.scene = Menu(("NEW GAME", "QUIT"),
                           (MenuCommand.new_game, MenuCommand.quit),
                            self.drawer, self.event_manager)
-        #self.event_manager.push(pygame.event.Event(events.play_sound, {"name": "bg music",
-        #                                                               "loops": -1,
-        #                                                               "volume": 0}))
+        self.event_manager.push(pygame.event.Event(events.play_sound, {"name": "bg music",
+                                                                       "loops": -1}))
     
     def new_game(self):
         self.game = Game(self.drawer, self.event_manager)

@@ -102,7 +102,7 @@ class Menu:
                     pos = self.cursor.pos
                     self.options.options[pos].highlight()
                     command = self.options.commands[pos]
-                    self.event_manager.set_timer(events.option_selected, 100, loops=1,
+                    self.event_manager.set_timer(events.option_selected, SELECTION_DELAY, loops=1,
                                          ev_dict={"pos": pos, "command": command})
 
     def close(self):
