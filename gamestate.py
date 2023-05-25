@@ -29,8 +29,7 @@ class GameState:
         self.scene = Menu(("NEW GAME", "QUIT"),
                           (MenuCommand.new_game, MenuCommand.quit),
                            self.drawer, self.event_manager)
-        self.event_manager.push(pygame.event.Event(events.play_sound, {"name": "bg music",
-                                                                       "loops": -1}))
+        self.event_manager.push(pygame.event.Event(events.start_music_intro))
     
     def new_game(self):
         self.game = Game(self.drawer, self.event_manager)
@@ -48,6 +47,7 @@ class GameState:
                         self.state = State.game
                         self.scene.close()
                         self.new_game()
+                        self.event_manager.push(pygame.event.Event(events.start_music_transition))
             elif self.state == State.game:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.state = State.paused

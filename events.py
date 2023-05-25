@@ -66,6 +66,10 @@ class EventManager:
 screen_update = pygame.event.custom_type()
 
 play_sound = pygame.event.custom_type()
+stop_sound = pygame.event.custom_type()
+start_music_intro = pygame.event.custom_type()
+start_music_transition = pygame.event.custom_type()
+start_music_main = pygame.event.custom_type()
 
 pause = pygame.event.custom_type()
 option_selected = pygame.event.custom_type()

@@ -43,8 +43,13 @@ class Audio:
     def __init__(self, event_manager):
         self.event_manager = event_manager
         self.id = self.event_manager.register()
-        self.event_manager.subscribe(self.id, events.play_sound)
+        self.event_manager.subscribe(self.id,
+                                     events.play_sound,
+                                     events.start_music_intro,
+                                     events.start_music_transition,
+                                     events.start_music_main)
         self.sounds = {}
+        self.loops = set()
         self.enabled = True
     
     def enable(self):
@@ -52,26 +57,60 @@ class Audio:
     
     def disable(self):
         self.enabled = False
+        for sound in self.sounds:
+            sound.stop()
     
     def load(self, name, file, volume=1):
         self.sounds[name] = pygame.mixer.Sound(file=file)
         self.sounds[name].set_volume(volume)
     
+    def play(self, name, volume=1):
+        channel = self.sounds[name].play()
+        channel.set_volume(volume)
+        return channel
+    
+    def stop(self, name):
+            self.sounds[name].stop()
+    
+    def stop_channel(self, channel):
+        channel.stop()
+    
+    def music_main(self):
+        self.stop_loop(self.music_channel)
+        self.music_channel.queue(self.sounds["music-transition"])
+        self.playing_intro = False
+    
+    def loop(self, name, volume=1):
+        channel = self.play(name, volume)
+        self.loops.add(channel)
+        return channel
+    
+    def stop_loop(self, channel):
+        self.loops.remove(channel)
+    
     def update(self):
+        if self.enabled:
+            for channel in self.loops:
+                if channel.get_queue() is None:
+                    channel.queue(channel.get_sound())
         for event in self.event_manager.get(self.id):
             if not self.enabled:
                 continue
             if event.type == events.play_sound:
-                name = event.name
-                if hasattr(event, "loops"):
-                    loops = event.loops
-                else:
-                    loops = 0
-                channel = self.sounds[name].play(loops=loops)
                 if hasattr(event, "volume"):
-                    channel.set_volume(event.volume)
+                    volume = event.volume
                 else:
-                    channel.set_volume(1)
+                    volume = 1
+                self.play(event.name, volume)
+            elif event.type == events.start_music_intro:
+                self.music_channel = self.loop("music-intro")
+            elif event.type == events.start_music_transition:
+                self.stop_loop(self.music_channel)
+                self.music_channel.set_endevent(events.start_music_main)
+                self.music_channel.queue(self.sounds["music-transition"])
+            elif event.type == events.start_music_main:
+                self.music_channel.queue(self.sounds["music-main"])
+                self.loops.add(self.music_channel)
 
 def main():
     pygame.init()
@@ -87,8 +126,9 @@ def main():
 
     drawer = Drawer(screen)
     audio = Audio(event_manager)
-    audio.load("bg music", "theme-lofi.ogg", 0.4)
-    audio.disable()
+    audio.load("music-intro", "music-intro.ogg", 0.4)
+    audio.load("music-main", "music-main.ogg", 0.4)
+    audio.load("music-transition", "music-transition.ogg", 0.4)
 
     game_state = GameState(drawer, event_manager)
 
@@ -98,8 +138,8 @@ def main():
     while True:
         timer.tick()
         event_manager.push(*pygame.event.get())
-        game_state.update()
         audio.update()
+        game_state.update()
 
         for event in event_manager.get(loop_id):
             if event.type == pygame.QUIT:
