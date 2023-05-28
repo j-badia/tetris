@@ -70,6 +70,7 @@ class Game:
             self.queue.append(Tetrimino(shape))
     
     def start(self):
+        self.queue = []
         self.new_queue()
         self.next_tetrimino = self.queue.pop()
         self.drawer.add(*self.next_tetrimino.sprites())
@@ -80,13 +81,19 @@ class Game:
             self.drawer.remove(block)
         for block in self.tetrimino.sprites():
             self.drawer.remove(block)
+        for block in self.next_tetrimino.sprites():
+            self.drawer.remove(block)
         self.event_manager.deregister(self.id)
     
     def update(self):
         for event in self.event_manager.get(self.id):
+            moved = False
             if event.type == events.block_fall:
+                if self.falling_fast:
+                    moved = True
                 collided = self.tetrimino.move((0,1), self.fallen)
                 if collided:
+                    self.event_manager.push(pygame.event.Event(events.play_sound, {"name": "block-lock"}))
                     if max(block.mat_pos[1] for block in self.tetrimino.sprites()) < 0:
                         self.event_manager.set_timer(events.lost, LOSE_DELAY, loops=1)
                     else:
@@ -108,14 +115,17 @@ class Game:
                 if event.key == pygame.K_RIGHT:
                     self.event_manager.set_timer(events.move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
                     self.tetrimino.move((1,0), self.fallen)
+                    moved = True
                 elif event.key == pygame.K_LEFT:
                     self.event_manager.set_timer(events.move_left, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
                     self.tetrimino.move((-1,0), self.fallen)
+                    moved = True
                 elif event.key == pygame.K_DOWN:
                     self.falling_fast = True
                     self.event_manager.set_timer(events.block_fall, BLOCK_FALL_FAST_TIME)
                 elif event.key in CW_KEYS or event.key in CCW_KEYS:
                     self.tetrimino.rotate(event.key, self.fallen)
+                    self.event_manager.push(pygame.event.Event(events.play_sound, {"name": "block-rotate"}))
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
                     self.event_manager.set_timer(events.move_right, 0)
@@ -126,5 +136,9 @@ class Game:
                     self.event_manager.set_timer(events.block_fall, BLOCK_FALL_TIME)
             elif event.type == events.move_right:
                 self.tetrimino.move((1,0), self.fallen)
+                moved = True
             elif event.type == events.move_left:
                 self.tetrimino.move((-1,0), self.fallen)
+                moved = True
+            if moved:
+                self.event_manager.push(pygame.event.Event(events.play_sound, {"name": "block-move"}))

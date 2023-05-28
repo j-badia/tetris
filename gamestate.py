@@ -52,6 +52,7 @@ class GameState:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.state = State.paused
                     self.event_manager.pause(self.game.id)
+                    self.event_manager.push(pygame.event.Event(events.pause_audio))
                     self.scene = Menu(("RESUME", "NEW GAME", "QUIT"),
                                       (MenuCommand.resume, MenuCommand.new_game, MenuCommand.quit),
                                       self.drawer, self.event_manager)
@@ -69,11 +70,13 @@ class GameState:
                         self.state = State.game
                         self.scene.close()
                         self.event_manager.unpause(self.game.id)
+                        self.event_manager.push(pygame.event.Event(events.unpause_audio))
                         self.scene = self.game
                     elif event.command == MenuCommand.new_game:
                         self.state = State.game
                         self.scene.close()
                         self.game.end()
+                        self.event_manager.push(pygame.event.Event(events.unpause_audio))
                         self.new_game()
             elif self.state == State.lost:
                 if event.type == events.option_selected:

@@ -1,5 +1,7 @@
 import pygame
 
+SOUNDS_FOLDER = "sounds/"
+
 BLOCK_SIZE = 30
 MATRIX_SIZE = (10, 20)
 MATRIX_CORNER_POS = (450, 200)

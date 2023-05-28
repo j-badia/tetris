@@ -45,6 +45,8 @@ class Audio:
         self.id = self.event_manager.register()
         self.event_manager.subscribe(self.id,
                                      events.play_sound,
+                                     events.pause_audio,
+                                     events.unpause_audio,
                                      events.start_music_intro,
                                      events.start_music_transition,
                                      events.start_music_main)
@@ -60,8 +62,14 @@ class Audio:
         for sound in self.sounds:
             sound.stop()
     
+    def pause(self):
+        pygame.mixer.pause()
+    
+    def unpause(self):
+        pygame.mixer.unpause()
+    
     def load(self, name, file, volume=1):
-        self.sounds[name] = pygame.mixer.Sound(file=file)
+        self.sounds[name] = pygame.mixer.Sound(file=SOUNDS_FOLDER+file)
         self.sounds[name].set_volume(volume)
     
     def play(self, name, volume=1):
@@ -74,11 +82,6 @@ class Audio:
     
     def stop_channel(self, channel):
         channel.stop()
-    
-    def music_main(self):
-        self.stop_loop(self.music_channel)
-        self.music_channel.queue(self.sounds["music-transition"])
-        self.playing_intro = False
     
     def loop(self, name, volume=1):
         channel = self.play(name, volume)
@@ -102,6 +105,10 @@ class Audio:
                 else:
                     volume = 1
                 self.play(event.name, volume)
+            elif event.type == events.pause_audio:
+                self.pause()
+            elif event.type == events.unpause_audio:
+                self.unpause()
             elif event.type == events.start_music_intro:
                 self.music_channel = self.loop("music-intro")
             elif event.type == events.start_music_transition:
@@ -129,6 +136,10 @@ def main():
     audio.load("music-intro", "music-intro.ogg", 0.4)
     audio.load("music-main", "music-main.ogg", 0.4)
     audio.load("music-transition", "music-transition.ogg", 0.4)
+    audio.load("menu-select", "go.wav", 0.3)
+    audio.load("block-move", "lock.wav", 0.05)
+    audio.load("block-lock", "move.wav", 0.15)
+    audio.load("block-rotate", "ma_sfx_rotate.wav", 0.2)
 
     game_state = GameState(drawer, event_manager)
 

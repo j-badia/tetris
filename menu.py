@@ -104,6 +104,8 @@ class Menu:
                     command = self.options.commands[pos]
                     self.event_manager.set_timer(events.option_selected, SELECTION_DELAY, loops=1,
                                          ev_dict={"pos": pos, "command": command})
+                    self.event_manager.push(pygame.event.Event(events.play_sound,
+                                            {"name": "menu-select"}))
 
     def close(self):
         self.drawer.remove(self.background)
