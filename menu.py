@@ -74,10 +74,12 @@ class Menu:
         self.drawer = drawer
         self.event_manager = event_manager
         self.id = event_manager.register()
-        self.event_manager.subscribe(self.id, pygame.KEYDOWN)
+        self.event_manager.subscribe(self.id, pygame.KEYDOWN, pygame.KEYUP)
 
         self.event_manager.subscribe(self.id,
-                                     events.option_selected)
+                                     events.option_selected,
+                                     events.menu_move_down,
+                                     events.menu_move_up)
 
         self.background = pygame.sprite.Sprite()
         self.background.image = pygame.Surface(SCREEN_SIZE)
@@ -95,8 +97,12 @@ class Menu:
         for event in self.event_manager.get(self.id):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
+                    self.event_manager.set_timer(events.menu_move_down, 0)
+                    self.event_manager.set_timer(events.menu_move_up, MENU_MOVE_TIME, delay=MENU_MOVE_DELAY, loops=-1)
                     self.cursor.move_up()
                 elif event.key == pygame.K_DOWN:
+                    self.event_manager.set_timer(events.menu_move_up, 0)
+                    self.event_manager.set_timer(events.menu_move_down, MENU_MOVE_TIME, delay=MENU_MOVE_DELAY, loops=-1)
                     self.cursor.move_down()
                 elif event.key == pygame.K_RETURN:
                     pos = self.cursor.pos
@@ -106,6 +112,15 @@ class Menu:
                                          ev_dict={"pos": pos, "command": command})
                     self.event_manager.push(pygame.event.Event(events.play_sound,
                                             {"name": "menu-select"}))
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_UP:
+                    self.event_manager.set_timer(events.menu_move_up, 0)
+                elif event.key == pygame.K_DOWN:
+                    self.event_manager.set_timer(events.menu_move_down, 0)
+            elif event.type == events.menu_move_up:
+                self.cursor.move_up()
+            elif event.type == events.menu_move_down:
+                self.cursor.move_down()
 
     def close(self):
         self.drawer.remove(self.background)

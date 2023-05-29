@@ -12,10 +12,7 @@ from settings import *
 ###
 ### Hard Drop
 ### Lock Down
-### Show queue
-### Sound
 ### Levels / speed change
-### Continuous movement in menu
 
 class Drawer:
     def __init__(self, screen):
