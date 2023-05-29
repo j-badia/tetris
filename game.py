@@ -1,7 +1,7 @@
 import random
 import pygame
 import events
-from block import Tetrimino, Fallen
+from block import Tetrimino, Fallen, Block, COLORS
 from settings import *
 
 class Game:
@@ -25,6 +25,7 @@ class Game:
         self.id = self.event_manager.register()
         self.event_manager.subscribe(self.id,
                                      events.block_fall,
+                                     events.clear_line,
                                      events.clear_lines,
                                      events.move_left,
                                      events.move_right,
@@ -69,11 +70,21 @@ class Game:
         for shape in random.sample(range(7), 7):
             self.queue.append(Tetrimino(shape))
     
-    def start(self):
+    def add_cheat_line(self, j):
+        for i in range(MATRIX_SIZE[0]-1):
+            block = Block(COLORS[j%7])
+            block.place((i, j))
+            self.drawer.add(block)
+            self.fallen.add_block(block)
+
+    def start(self, cheat_lines=0):
         self.queue = []
         self.new_queue()
         self.next_tetrimino = self.queue.pop()
         self.drawer.add(*self.next_tetrimino.sprites())
+        if cheat_lines > 0:
+            for j in range(cheat_lines):
+                self.add_cheat_line(MATRIX_SIZE[1]-j-1)
         self.place_tetrimino()
     
     def end(self):
@@ -102,15 +113,33 @@ class Game:
                         self.fallen.check_lines()
                         if len(self.fallen.completed_lines) > 0:
                             self.event_manager.set_timer(events.block_fall, 0)
-                            self.event_manager.set_timer(events.clear_lines, LINE_CLEAR_DELAY, loops=1)
-                            self.fallen.paint_lines()
+                            self.event_manager.set_timer(events.clear_line, LINE_CLEAR_TIME, loops=1)
+                            self.completed_line_idx = 0
+                            self.fallen.paint_line(self.fallen.completed_lines[self.completed_line_idx])
                         else:
                             self.place_tetrimino()
+            elif event.type == events.clear_line:
+                self.event_manager.push(pygame.event.Event(events.play_sound,
+                                                           {"name": f"combo{self.completed_line_idx+1}"}))
+                line = self.fallen.completed_lines[self.completed_line_idx]
+                for block in self.fallen.get_row(line):
+                    self.drawer.remove(block)
+                self.fallen.clear_line(line)
+                if self.completed_line_idx < len(self.fallen.completed_lines)-1:
+                    self.completed_line_idx += 1
+                    line = self.fallen.completed_lines[self.completed_line_idx]
+                    self.fallen.paint_line(line)
+                    self.event_manager.set_timer(events.clear_line, LINE_CLEAR_TIME, loops=1)
+                else:
+                    self.event_manager.set_timer(events.clear_lines, LINE_CLEAR_DELAY, loops=1)
             elif event.type == events.clear_lines:
-                for j in self.fallen.completed_lines:
-                    [self.drawer.remove(block) for block in self.fallen.get_row(j)]
-                self.fallen.clear_lines()
+                self.fallen.move_completed_lines()
                 self.place_tetrimino()
+            # elif event.type == events.clear_lines:
+            #     for j in self.fallen.completed_lines:
+            #         [self.drawer.remove(block) for block in self.fallen.get_row(j)]
+            #     self.fallen.clear_lines()
+            #     self.place_tetrimino()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     self.event_manager.set_timer(events.move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)

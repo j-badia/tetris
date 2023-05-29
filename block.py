@@ -146,15 +146,20 @@ class Fallen(pygame.sprite.Group):
                 block.move_to(Vector2(i, j))
             self.matrix[(i, j)] = block
     
-    def clear_lines(self):
-        for j in self.completed_lines:
-            self.remove(self.get_row(j))
-            self.set_row(j, MATRIX_SIZE[0]*[None])
+    def clear_line(self, j):
+        self.remove(self.get_row(j))
+        self.set_row(j, MATRIX_SIZE[0]*[None])
+
+    def move_completed_lines(self):
         for j in sorted(self.completed_lines):
             for jp in reversed(range(j)):
                 self.set_row(jp+1, self.get_row(jp))
             self.set_row(0, MATRIX_SIZE[0]*[None])
         self.completed_lines = []
+
+    def clear_lines(self):
+        for j in self.completed_lines:
+            self.clear_line(j)        
     
     def check_lines(self):
         if len(self.completed_lines) > 0:
@@ -168,8 +173,11 @@ class Fallen(pygame.sprite.Group):
             if complete_line:
                 self.completed_lines.append(j)
         return self.completed_lines
+    
+    def paint_line(self, j):
+        for i in range(MATRIX_SIZE[0]):
+            self.get(i, j).image.fill((230, 230, 230))
 
     def paint_lines(self):
         for j in self.completed_lines:
-            for i in range(MATRIX_SIZE[0]):
-                self.get(i, j).image.fill((230, 230, 230))
+            self.paint_line(j)

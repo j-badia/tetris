@@ -78,6 +78,7 @@ option_selected = pygame.event.custom_type()
 lost = pygame.event.custom_type()
 
 block_fall = pygame.event.custom_type()
+clear_line = pygame.event.custom_type()
 clear_lines = pygame.event.custom_type()
 move_left = pygame.event.custom_type()
 move_right = pygame.event.custom_type()

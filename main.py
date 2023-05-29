@@ -136,10 +136,12 @@ def main():
     audio.load("music-intro", "music-intro.ogg", 0.4)
     audio.load("music-main", "music-main.ogg", 0.4)
     audio.load("music-transition", "music-transition.ogg", 0.4)
-    audio.load("menu-select", "go.wav", 0.3)
+    audio.load("menu-select", "go.wav", 0.2)
     audio.load("block-move", "lock.wav", 0.05)
     audio.load("block-lock", "move.wav", 0.15)
     audio.load("block-rotate", "ma_sfx_rotate.wav", 0.2)
+    for i in range(1, 5):
+        audio.load(f"combo{i}", f"combo{i}.wav", 0.2)
 
     game_state = GameState(drawer, event_manager)
 
