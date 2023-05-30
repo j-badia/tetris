@@ -10,8 +10,7 @@ from settings import *
 
 ### TODO:
 ###
-### Hard Drop
-### Lock Down
+### Infinite Lock Down?
 ### Levels / speed change
 
 class Drawer:

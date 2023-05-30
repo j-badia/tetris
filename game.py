@@ -135,11 +135,6 @@ class Game:
             elif event.type == events.clear_lines:
                 self.fallen.move_completed_lines()
                 self.place_tetrimino()
-            # elif event.type == events.clear_lines:
-            #     for j in self.fallen.completed_lines:
-            #         [self.drawer.remove(block) for block in self.fallen.get_row(j)]
-            #     self.fallen.clear_lines()
-            #     self.place_tetrimino()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     self.event_manager.set_timer(events.move_right, AUTO_REPEAT_TIME, delay=AUTO_REPEAT_DELAY)
@@ -152,6 +147,10 @@ class Game:
                 elif event.key == pygame.K_DOWN:
                     self.falling_fast = True
                     self.event_manager.set_timer(events.block_fall, BLOCK_FALL_FAST_TIME)
+                elif event.key == pygame.K_SPACE:
+                    while not self.tetrimino.move((0,1), self.fallen):
+                        pass
+                    self.event_manager.push(pygame.event.Event(events.block_fall))
                 elif event.key in CW_KEYS or event.key in CCW_KEYS:
                     self.tetrimino.rotate(event.key, self.fallen)
                     self.event_manager.push(pygame.event.Event(events.play_sound, {"name": "block-rotate"}))
