@@ -18,6 +18,14 @@ class Game:
         if cls.next_font is None:
             pygame.font.init()
             cls.next_font = pygame.font.SysFont(NEXT_FONT, NEXT_FONTSIZE, bold=True)
+        
+    @classmethod
+    def block_fall_time(cls, level):
+        return int(1000 * (0.8 - ((level-1)*0.007))**(level-1))
+    
+    @classmethod
+    def block_fall_fast_time(cls, level):
+        return int(cls.block_fall_time(level) / 20)
 
     def __init__(self, drawer, event_manager):
         self.drawer = drawer
@@ -46,6 +54,13 @@ class Game:
         next.rect.bottom = MATRIX_CORNER_POS[1] + BLOCK_SIZE*(NEXT_POS[1]-2)
         self.drawer.add(next)
 
+        self.level_text = pygame.sprite.Sprite()
+        self.level_text.image = self.next_font.render("LEVEL", True, (230, 230, 230))
+        self.level_text.rect = self.level_text.image.get_rect()
+        self.level_text.rect.centerx = MATRIX_CORNER_POS[0] + BLOCK_SIZE*LEVEL_POS[0]
+        self.level_text.rect.bottom = MATRIX_CORNER_POS[1] + BLOCK_SIZE*(LEVEL_POS[1]-2)
+        self.drawer.add(self.level_text)
+
         self.queue = []
         self.fallen = Fallen()
         self.drawer.add(*self.fallen.sprites())
@@ -63,7 +78,7 @@ class Game:
             self.event_manager.set_timer(events.lost, LOSE_DELAY, loops=1)
             self.event_manager.set_timer(events.block_fall, 0)
         else:
-            time = BLOCK_FALL_FAST_TIME if self.falling_fast else BLOCK_FALL_TIME
+            time = self.block_fall_fast_time(self.level) if self.falling_fast else self.block_fall_time(self.level)
             self.event_manager.set_timer(events.block_fall, time, delay=BLOCK_FALL_DELAY)
 
     def new_queue(self):
@@ -77,7 +92,16 @@ class Game:
             self.drawer.add(block)
             self.fallen.add_block(block)
 
-    def start(self, cheat_lines=0):
+    def start(self, starting_level=1, cheat_lines=0):
+        self.level = starting_level
+        self.line_clears = 0
+        self.level_number = pygame.sprite.Sprite()
+        self.level_number.image = self.next_font.render(str(self.level), True, (230, 230, 230))
+        self.level_number.rect = self.level_number.image.get_rect()
+        self.level_number.rect.centerx = self.level_text.rect.centerx
+        self.level_number.rect.bottom = self.level_text.rect.bottom + BLOCK_SIZE
+        self.drawer.add(self.level_number)
+
         self.queue = []
         self.new_queue()
         self.next_tetrimino = self.queue.pop()
@@ -95,6 +119,9 @@ class Game:
         for block in self.next_tetrimino.sprites():
             self.drawer.remove(block)
         self.event_manager.deregister(self.id)
+    
+    def update_level_number(self):
+        self.level_number.image = self.next_font.render(str(self.level), True, (230, 230, 230))
     
     def update(self):
         for event in self.event_manager.get(self.id):
@@ -119,6 +146,9 @@ class Game:
                         else:
                             self.place_tetrimino()
             elif event.type == events.clear_line:
+                self.line_clears += 1
+                if self.line_clears % LEVEL_GOAL == 0:
+                    self.level += 1
                 self.event_manager.push(pygame.event.Event(events.play_sound,
                                                            {"name": f"combo{self.completed_line_idx+1}"}))
                 line = self.fallen.completed_lines[self.completed_line_idx]
@@ -134,6 +164,7 @@ class Game:
                     self.event_manager.set_timer(events.clear_lines, LINE_CLEAR_DELAY, loops=1)
             elif event.type == events.clear_lines:
                 self.fallen.move_completed_lines()
+                self.update_level_number()
                 self.place_tetrimino()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
@@ -146,7 +177,7 @@ class Game:
                     moved = True
                 elif event.key == pygame.K_DOWN:
                     self.falling_fast = True
-                    self.event_manager.set_timer(events.block_fall, BLOCK_FALL_FAST_TIME)
+                    self.event_manager.set_timer(events.block_fall, self.block_fall_fast_time(self.level))
                 elif event.key == pygame.K_SPACE:
                     while not self.tetrimino.move((0,1), self.fallen):
                         pass
@@ -161,7 +192,7 @@ class Game:
                     self.event_manager.set_timer(events.move_left, 0)
                 elif event.key == pygame.K_DOWN:
                     self.falling_fast = False
-                    self.event_manager.set_timer(events.block_fall, BLOCK_FALL_TIME)
+                    self.event_manager.set_timer(events.block_fall, self.block_fall_time(self.level))
             elif event.type == events.move_right:
                 self.tetrimino.move((1,0), self.fallen)
                 moved = True

@@ -11,7 +11,7 @@ from settings import *
 ### TODO:
 ###
 ### Infinite Lock Down?
-### Levels / speed change
+### Score
 
 class Drawer:
     def __init__(self, screen):
