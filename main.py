@@ -1,4 +1,4 @@
-import sys
+import os, sys
 from collections import OrderedDict
 import pygame
 
@@ -65,13 +65,14 @@ class Audio:
         pygame.mixer.unpause()
     
     def load(self, name, file, volume=1):
-        self.sounds[name] = pygame.mixer.Sound(file=SOUNDS_FOLDER+file)
-        self.sounds[name].set_volume(volume)
+        if os.path.isfile(SOUNDS_FOLDER+file):
+            self.sounds[name] = pygame.mixer.Sound(file=SOUNDS_FOLDER+file)
+            self.sounds[name].set_volume(volume)
     
     def play(self, name, volume=1):
-        channel = self.sounds[name].play()
-        channel.set_volume(volume)
-        return channel
+        if name in self.sounds: # If sound doesn't exist it will be silent instead of giving error
+            channel = self.sounds[name].play()
+            channel.set_volume(volume)
     
     def stop(self, name):
             self.sounds[name].stop()
